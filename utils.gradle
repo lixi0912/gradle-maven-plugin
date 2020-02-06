@@ -1,6 +1,5 @@
 def isAndroidProject() {
-    def plugins = project.getPlugins()
-    return plugins.hasPlugin('com.android.application') || plugins.hasPlugin('com.android.library')
+    return project.pluginManager.hasPlugin('com.android.library')
 }
 
 def getStringProperty(String propertyName, defaultValue = "") {
