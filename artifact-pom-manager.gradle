@@ -2,31 +2,34 @@ def mavHost = project.properties.getOrDefault('mavHost', 'https://raw.githubuser
 apply from: "${mavHost}/utils.gradle"
  
 def decoratePom(pom) {
-    pom.name = getStringProperty("mavProjectName")
-    pom.description = getStringProperty("mavLibraryDescription")
-    pom.url = getStringProperty("mavSiteUrl")
-    
-    pom.licenses {
-        getArrayProperty("mavLibraryLicenses").each { licenseName, licenseUrl ->
-            license {
-                name = licenseName
-                url = licenseUrl
+    if (pom.hasProperty("name")) {
+        pom.name = getStringProperty("mavProjectName")
+        pom.description = getStringProperty("mavLibraryDescription")
+        pom.url = getStringProperty("mavSiteUrl")
+
+        pom.licenses {
+            getArrayProperty("mavLibraryLicenses").each { licenseName, licenseUrl ->
+                license {
+                    name = licenseName
+                    url = licenseUrl
+                }
             }
         }
-    }
-    pom.developers {
-        getArrayProperty("mavDevelopers").each { developerId, developerName ->
-            developer {
-                id = developerId
-                name = developerName
+        pom.developers {
+            getArrayProperty("mavDevelopers").each { developerId, developerName ->
+                developer {
+                    id = developerId
+                    name = developerName
+                }
             }
         }
+        pom.scm {
+            connection = getStringProperty("mavGitUrl")
+            developerConnection = getStringProperty("mavGitUrl")
+            url = getStringProperty("mavSiteUrl")
+        }
     }
-    pom.scm {
-        connection = getStringProperty("mavGitUrl")
-        developerConnection = getStringProperty("mavGitUrl")
-        url = getStringProperty("mavSiteUrl")
-    }
+
 
     addDependencies(pom)
 }
