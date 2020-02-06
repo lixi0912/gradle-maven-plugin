@@ -3,16 +3,20 @@ def isAndroidProject() {
     return plugins.hasPlugin('com.android.application') || plugins.hasPlugin('com.android.library')
 }
 
-def getStringProperty(String propertyName) {
-    return project.hasProperty(propertyName) ? project.getProperty(propertyName) : ""
+def getStringProperty(String propertyName, defaultValue = "") {
+    return propertyOrDefault(propertyName, defaultValue)
 }
 
-def getBooleanProperty(String propertyName) {
-    return project.hasProperty(propertyName) ? project.getProperty(propertyName) : false
+def getBooleanProperty(String propertyName, defaultValue = false) {
+    return propertyOrDefault(propertyName, defaultValue)
 }
 
-def getArrayProperty(String propertyName) {
-    return project.hasProperty(propertyName) ? project.getProperty(propertyName) : []
+def getArrayProperty(String propertyName, defaultValue = []) {
+    return propertyOrDefault(propertyName, defaultValue)
+}
+
+def propertyOrDefault(String propertyName, defaultValue) {
+    return project.properties.get(propertyName, defaultValue)
 }
 
 ext {
@@ -20,4 +24,5 @@ ext {
     getStringProperty = this.&getStringProperty
     getBooleanProperty = this.&getBooleanProperty
     getArrayProperty = this.&getArrayProperty
+    propertyOrDefault = this.&propertyOrDefault
 }
