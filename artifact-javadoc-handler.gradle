@@ -2,8 +2,11 @@ def mavHost = project.properties.getOrDefault('mavHost', 'https://raw.githubuser
 apply from: "${mavHost}/utils.gradle"
 
 if (isAndroidProject()) {
+
+    def projectName = getStringProperty("mavProjectName", project.name)
+
     task androidJavadocs(type: Javadoc) {
-        title = "${getStringProperty("mavProjectName")} ${project.version} API"
+        title = "${projectName} ${project.version} API"
         description "Generates Javadoc"
         source = android.sourceSets.main.java.srcDirs
         classpath += files(android.bootClasspath)
@@ -21,7 +24,7 @@ if (isAndroidProject()) {
         exclude '**/R.html', '**/R.*.html', '**/index.html', '**/*.kt'
 
         options {
-            windowTitle("${getStringProperty("mavProjectName")} ${project.version} Reference")
+            windowTitle("${projectName} ${project.version} Reference")
             locale = 'en_US'
             encoding = 'UTF-8'
             charSet = 'UTF-8'
