@@ -2,8 +2,6 @@ apply plugin: 'maven-publish'
 
 def mavHost = project.properties.getOrDefault('mavHost', 'https://raw.githubusercontent.com/sky-uk/gradle-maven-plugin/master/')
 apply from: "${mavHost}/utils.gradle"
-apply from: "${mavHost}/artifact-javadoc-handler.gradle"
-apply from: "${mavHost}/artifact-pom-manager.gradle"
 
 def getProjectVersion() {
     def versionName
@@ -19,6 +17,10 @@ def getProjectVersion() {
 }
 
 project.afterEvaluate {
+
+    apply from: "${mavHost}/artifact-javadoc-handler.gradle"
+    apply from: "${mavHost}/artifact-pom-manager.gradle"
+
     publishing.publications {
         mavenPublish(MavenPublication) {
             groupId getStringProperty('mavGroupId')
