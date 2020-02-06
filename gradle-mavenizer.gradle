@@ -5,10 +5,27 @@ apply from: "${mavHost}/utils.gradle"
 apply from: "${mavHost}/artifact-javadoc-handler.gradle"
 apply from: "${mavHost}/artifact-pom-manager.gradle"
 
+def getProjectVersion() {
+    def versionName
+    if (isAndroidProject()) {
+        versionName = getStringProperty("mavVersion", project.android.defaultConfig.versionName)
+    } else {
+        versionName = getStringProperty("mavVersion", project.version)
+    }
+    if (getBooleanProperty("mavSnapshot")) {
+        versionName += "-SNAPSHOT"
+    }
+    return versionName
+}
+
 project.afterEvaluate {
     publishing {
         publications {
             mavenPublish(MavenPublication) {
+                groupId getStringProperty('mavGroupId')
+                artifactId getStringProperty("mavProjectName", project.name)
+                version = getProjectVersion()
+
                 if (isAndroidProject()) {
                     artifact bundleReleaseAar
                     artifact androidJavadocsJar
