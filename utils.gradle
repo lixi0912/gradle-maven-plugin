@@ -1,5 +1,5 @@
 def isAndroidProject() {
-    return project.pluginManager.hasPlugin('com.android.library')
+    project.pluginManager.hasPlugin('com.android.library')
 }
 
 def getStringProperty(String propertyName, defaultValue = "") {
@@ -18,10 +18,35 @@ def propertyOrDefault(String propertyName, defaultValue) {
     return project.properties.get(propertyName, defaultValue)
 }
 
+def getProjectName(flavorName) {
+    return [getStringProperty("mavProjectName", project.name),
+            getStringProperty("mavBranch"), flavorName]
+            .findAll {
+                null != it && !it.isEmpty()
+            }
+            .join("-")
+}
+
+def getProjectVersion() {
+    def versionName
+    if (isAndroidProject()) {
+        versionName = getStringProperty("mavVersion", project.android.defaultConfig.versionName)
+    } else {
+        versionName = getStringProperty("mavVersion", project.version)
+    }
+    if (getBooleanProperty("mavSnapshot")) {
+        versionName += "-SNAPSHOT"
+    }
+    return versionName
+}
+
+
 ext {
     isAndroidProject = this.&isAndroidProject
     getStringProperty = this.&getStringProperty
     getBooleanProperty = this.&getBooleanProperty
     getArrayProperty = this.&getArrayProperty
     propertyOrDefault = this.&propertyOrDefault
+    getProjectName = this.&getProjectName
+    getProjectVersion = this.&getProjectVersion
 }
