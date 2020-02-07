@@ -1,69 +1,68 @@
-apply plugin: 'maven-publish'
-
 def mavHost = project.properties.getOrDefault('mavHost', 'https://raw.githubusercontent.com/sky-uk/gradle-maven-plugin/master/')
 apply from: "${mavHost}/utils.gradle"
 
-def getProjectVersion() {
-    def versionName
-    if (isAndroidProject()) {
-        versionName = getStringProperty("mavVersion", project.android.defaultConfig.versionName)
-    } else {
-        versionName = getStringProperty("mavVersion", project.version)
-    }
-    if (getBooleanProperty("mavSnapshot")) {
-        versionName += "-SNAPSHOT"
-    }
-    return versionName
-}
+subprojects {
+    project.apply plugin: 'maven-publish'
 
-project.afterEvaluate {
+    project.afterEvaluate {
+        project.apply from: "${mavHost}/artifact-javadoc-handler.gradle"
+        project.apply from: "${mavHost}/artifact-pom-manager.gradle"
 
-    apply from: "${mavHost}/artifact-javadoc-handler.gradle"
-    apply from: "${mavHost}/artifact-pom-manager.gradle"
-
-    publishing.publications {
-        mavenPublish(MavenPublication) {
-            groupId getStringProperty('mavGroupId')
-            artifactId getStringProperty("mavProjectName", project.name)
-            version = getProjectVersion()
-
+        publishing.publications {
             if (isAndroidProject()) {
-                artifact bundleReleaseAar
-                artifact androidJavadocsJar
-                artifact androidSourcesJar
-            } else {
-                artifact jar
-                artifact sourcesJar
-                artifact javadocJar
-            }
+                android.libraryVariants.all { variant ->
+                    if (!variant.buildType.debuggable) {
+                        "maven${variant.name.capitalize()}Publish"(MavenPublication) {
+                            groupId getStringProperty('mavGroupId')
+                            artifactId getProjectName(variant.flavorName)
+                            version = getProjectVersion()
 
-            decoratePom(pom)
-        }
-    }
 
-    publishing.repositories {
-        def isToRemoteRepo = getBooleanProperty("mavPublishToRemoteRepo")
-        def isToInternalRepo = getBooleanProperty("mavPublishToInternalRepo")
-        def isToMavenLocal = getBooleanProperty("mavPublishToMavenLocal")
+                            artifact project.tasks.findByName("bundle${variant.name.capitalize()}Aar")
+                            artifact androidJavadocsJar
+                            artifact androidSourcesJar
 
-        if (isToRemoteRepo) {
-            maven {
-                credentials {
-                    username getStringProperty("mavRemoteRepoUser")
-                    password getStringProperty("mavRemoteRepoPassword")
+
+                            decoratePom(pom)
+                        }
+                    }
                 }
-                url = getStringProperty("mavRepoRemoteUrl")
+            } else {
+                mavenPublish(MavenPublication) {
+                    artifact jar
+                    artifact sourcesJar
+                    artifact javadocJar
+
+                    decoratePom(pom)
+                }
+            }
+
+        }
+        publishing.repositories {
+            def isToRemoteRepo = getBooleanProperty("mavPublishToRemoteRepo")
+            def isToInternalRepo = getBooleanProperty("mavPublishToInternalRepo")
+            def isToMavenLocal = getBooleanProperty("mavPublishToMavenLocal")
+
+            if (isToRemoteRepo) {
+                maven {
+                    credentials {
+                        username getStringProperty("mavRemoteRepoUser")
+                        password getStringProperty("mavRemoteRepoPassword")
+                    }
+                    url = getStringProperty("mavRepoRemoteUrl")
+                }
+            }
+
+            if (isToInternalRepo) {
+                maven {
+                    url = getStringProperty("mavRepoInternalUrl")
+                }
+            }
+
+            if (isToMavenLocal || (!isToInternalRepo && !isToRemoteRepo)) {
+                mavenLocal()
             }
         }
 
-        if (isToInternalRepo) {
-            maven {
-                url = getStringProperty("mavRepoInternalUrl")
-            }
-        }
-
-        if (isToMavenLocal || (!isToInternalRepo && !isToRemoteRepo)) {
-            mavenLocal()
-        }
     }
 }
